@@ -1,0 +1,207 @@
+----------------------------------------------------___________________________________________________2_______________________________________________------------------------------------------------------
+-- Table Creation
+CREATE TABLE Emp_Status (
+    Status_ID INT PRIMARY KEY,
+    Status_Name VARCHAR(20) UNIQUE NOT NULL
+);
+
+CREATE TABLE Fav_Movies (
+    Movie_ID INT PRIMARY KEY,
+    Movie_Name VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE Fav_Foods (
+    Food_ID INT PRIMARY KEY,
+    Food_Name VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE Client_Hobbies (
+    Hobby_ID INT PRIMARY KEY,
+    Hobby_Name VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE Client_Info (
+    Client_ID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Age INT,
+    Employment_Status_ID INT,
+    Favorite_Movie_ID INT,
+    Hobby_ID INT,
+    FOREIGN KEY (Employment_Status_ID) REFERENCES Emp_Status(Status_ID),
+    FOREIGN KEY (Favorite_Movie_ID) REFERENCES Fav_Movies(Movie_ID),
+    FOREIGN KEY (Hobby_ID) REFERENCES Client_Hobbies(Hobby_ID)
+);
+
+CREATE TABLE Client_Fav_Foods (
+    Client_ID INT,
+    Food_ID INT,
+    PRIMARY KEY (Client_ID, Food_ID),
+    FOREIGN KEY (Client_ID) REFERENCES Client_Info(Client_ID),
+    FOREIGN KEY (Food_ID) REFERENCES Fav_Foods(Food_ID)
+);
+
+-- Data Insertion
+INSERT ALL
+INTO Emp_Status (Status_ID, Status_Name) VALUES (1, 'employed')
+INTO Emp_Status (Status_ID, Status_Name) VALUES (2, 'unemployed')
+SELECT * FROM dual;
+
+INSERT ALL
+INTO Fav_Movies (Movie_ID, Movie_Name) VALUES (1, 'horror')
+INTO Fav_Movies (Movie_ID, Movie_Name) VALUES (2, 'romantic')
+INTO Fav_Movies (Movie_ID, Movie_Name) VALUES (3, 'action')
+INTO Fav_Movies (Movie_ID, Movie_Name) VALUES (4, 'scifi')
+INTO Fav_Movies (Movie_ID, Movie_Name) VALUES (5, 'comedy')
+SELECT * FROM dual;
+
+INSERT ALL
+INTO Fav_Foods (Food_ID, Food_Name) VALUES (1, 'beef roast')
+INTO Fav_Foods (Food_ID, Food_Name) VALUES (2, 'omlete')
+INTO Fav_Foods (Food_ID, Food_Name) VALUES (3, 'pizza')
+INTO Fav_Foods (Food_ID, Food_Name) VALUES (4, 'burger')
+INTO Fav_Foods (Food_ID, Food_Name) VALUES (5, 'rice and curry')
+INTO Fav_Foods (Food_ID, Food_Name) VALUES (6, 'porotta and beef roast')
+SELECT * FROM dual;
+
+INSERT ALL
+INTO Client_Hobbies (Hobby_ID, Hobby_Name) VALUES (1, 'reading')
+INTO Client_Hobbies (Hobby_ID, Hobby_Name) VALUES (2, 'gaming')
+INTO Client_Hobbies (Hobby_ID, Hobby_Name) VALUES (3, 'sports')
+INTO Client_Hobbies (Hobby_ID, Hobby_Name) VALUES (4, 'cooking')
+INTO Client_Hobbies (Hobby_ID, Hobby_Name) VALUES (5, 'music')
+INTO Client_Hobbies (Hobby_ID, Hobby_Name) VALUES (6, 'traveling')
+SELECT * FROM dual;
+
+INSERT ALL
+INTO Client_Info (Client_ID, Name, Age, Employment_Status_ID, Favorite_Movie_ID, Hobby_ID) VALUES (1, 'RAMANAN', 30, 1, 1, 1)
+INTO Client_Info (Client_ID, Name, Age, Employment_Status_ID, Favorite_Movie_ID, Hobby_ID) VALUES (2, 'RAM GOPAL', 45, 2, 2, 2)
+INTO Client_Info (Client_ID, Name, Age, Employment_Status_ID, Favorite_Movie_ID, Hobby_ID) VALUES (3, 'RAVI', 25, 1, 1, 3)
+INTO Client_Info (Client_ID, Name, Age, Employment_Status_ID, Favorite_Movie_ID, Hobby_ID) VALUES (4, 'RAHUL', 50, 1, 3, 4)
+INTO Client_Info (Client_ID, Name, Age, Employment_Status_ID, Favorite_Movie_ID, Hobby_ID) VALUES (5, 'RAJAN', 22, 1, 2, 5)
+INTO Client_Info (Client_ID, Name, Age, Employment_Status_ID, Favorite_Movie_ID, Hobby_ID) VALUES (6, 'RAJU', 35, 2, 1, 6)
+INTO Client_Info (Client_ID, Name, Age, Employment_Status_ID, Favorite_Movie_ID, Hobby_ID) VALUES (7, 'RAJ', 49, 2, 1, 6)
+SELECT * FROM dual;
+
+INSERT ALL
+INTO Client_Fav_Foods (Client_ID, Food_ID) VALUES (1, 1)
+INTO Client_Fav_Foods (Client_ID, Food_ID) VALUES (1, 2)
+INTO Client_Fav_Foods (Client_ID, Food_ID) VALUES (2, 2)
+INTO Client_Fav_Foods (Client_ID, Food_ID) VALUES (3, 3)
+INTO Client_Fav_Foods (Client_ID, Food_ID) VALUES (4, 4)
+INTO Client_Fav_Foods (Client_ID, Food_ID) VALUES (5, 3)
+INTO Client_Fav_Foods (Client_ID, Food_ID) VALUES (6, 3)
+INTO Client_Fav_Foods (Client_ID, Food_ID) VALUES (7, 3)
+SELECT * FROM dual;
+
+-- Queries
+-- 1. List of clients in ascending order of their age, with names starting with "R"
+SELECT *
+FROM Client_Info
+WHERE Name LIKE 'R%'
+ORDER BY Age ASC;
+
+-- 2. Identify a client who is unemployed
+SELECT *
+FROM Client_Info
+WHERE Employment_Status_ID = 2;
+
+-- 3. Identify the client who is above 40 years and loves "horror" movies and "pizza"
+SELECT C.Name, C.Age, M.Movie_Name AS Favorite_Movie, F.Food_Name AS Favorite_Food
+FROM Client_Info C
+JOIN Fav_Movies M ON C.Favorite_Movie_ID = M.Movie_ID
+JOIN Client_Fav_Foods CF ON C.Client_ID = CF.Client_ID
+JOIN Fav_Foods F ON CF.Food_ID = F.Food_ID
+WHERE C.Age > 40
+AND M.Movie_Name = 'horror'
+AND F.Food_Name = 'pizza';
+
+-- 4. Show the hobby that most clients preferred
+SELECT H.Hobby_Name, COUNT(C.Hobby_ID) AS Preference_Count
+FROM Client_Hobbies H
+JOIN Client_Info C ON H.Hobby_ID = C.Hobby_ID
+GROUP BY H.Hobby_Name
+ORDER BY Preference_Count DESC
+FETCH FIRST 1 ROWS ONLY;
+
+-- 5. List of all clients who have more than one favorite food
+SELECT C.Client_ID, C.Name, COUNT(CF.Food_ID) AS NumberOfFavoriteFoods
+FROM Client_Info C
+JOIN Client_Fav_Foods CF ON C.Client_ID = CF.Client_ID
+GROUP BY C.Client_ID, C.Name
+HAVING COUNT(CF.Food_ID) > 1;
+
+-- 6. Identify a client whose hobby is unique among the clients
+SELECT C.*
+FROM Client_Info C
+WHERE C.Hobby_ID IN (
+    SELECT Hobby_ID
+    FROM Client_Info
+    GROUP BY Hobby_ID
+    HAVING COUNT(*) = 1
+);
+
+-- 7. Identify the client who is above 20 years and loves "romantic" movies and "pizza"
+SELECT C.Name, C.Age, M.Movie_Name AS Favorite_Movie, F.Food_Name AS Favorite_Food
+FROM Client_Info C
+JOIN Fav_Movies M ON C.Favorite_Movie_ID = M.Movie_ID
+JOIN Client_Fav_Foods CF ON C.Client_ID = CF.Client_ID
+JOIN Fav_Foods F ON CF.Food_ID = F.Food_ID
+WHERE C.Age > 20
+AND M.Movie_Name = 'romantic'
+AND F.Food_Name = 'pizza';
+
+---------------------------------------------------------------------------------------------------------------------------------________________1________________------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+drop table clients
+
+
+CREATE TABLE ExpenseCategories (
+    category_id INT PRIMARY KEY,
+    category_name VARCHAR(50) UNIQUE
+);
+
+
+INSERT INTO ExpenseCategories (category_id, category_name) VALUES (1, 'Rent');
+INSERT INTO ExpenseCategories (category_id, category_name) VALUES (2, 'Electricity');
+INSERT INTO ExpenseCategories (category_id, category_name) VALUES (3, 'Water');
+INSERT INTO ExpenseCategories (category_id, category_name) VALUES (4, 'Grocery');
+INSERT INTO ExpenseCategories (category_id, category_name) VALUES (5, 'Entertainment');
+ select * from ExpenseCategories
+
+CREATE TABLE Expenses (
+    id INT PRIMARY KEY,
+    expense_date DATE,
+    category_id INT,
+    item VARCHAR(100),
+    cost NUMBER(10,2),
+    FOREIGN KEY (category_id) REFERENCES ExpenseCategories(category_id)
+);
+
+INSERT INTO Expenses (id, expense_date, category_id, item, cost) VALUES (1, TO_DATE('2022-09-08', 'YYYY-MM-DD'), 1, 'Monthly Rent', 4000);
+INSERT INTO Expenses (id, expense_date, category_id, item, cost) VALUES (2, TO_DATE('2022-02-02', 'YYYY-MM-DD'), 2, 'Electricity Bill', 200);
+INSERT INTO Expenses (id, expense_date, category_id, item, cost) VALUES (3, TO_DATE('2024-10-07', 'YYYY-MM-DD'), 5, 'Movie Tickets', 130);
+INSERT INTO Expenses (id, expense_date, category_id, item, cost) VALUES (4, TO_DATE('2022-09-03', 'YYYY-MM-DD'), 3, 'Water Bill', 50);
+INSERT INTO Expenses (id, expense_date, category_id, item, cost) VALUES (5, TO_DATE('2024-05-03', 'YYYY-MM-DD'), 4, 'Grocery Bill', 100);
+INSERT INTO Expenses (id, expense_date, category_id, item, cost) VALUES (6, TO_DATE('2024-09-09', 'YYYY-MM-DD'), 5, 'Movie Tickets', 130);
+select * from expenses
+
+------------------------------- total expenses for a day:-------------------------
+
+SELECT expense_date, SUM(cost) AS total_expense_per_day FROM Expenses WHERE expense_date = TO_DATE('2024-09-02', 'YYYY-MM-DD') GROUP BY expense_date;
+--------------------week:------------------------
+
+SELECT TO_CHAR(expense_date, 'IW') AS week_number, SUM(cost) AS total_expense_per_week FROM Expenses WHERE TO_CHAR(expense_date, 'YYYY') = '2024' 
+AND TO_CHAR(expense_date, 'IW') = TO_CHAR(TO_DATE('2024-09-03', 'YYYY-MM-DD'), 'IW')
+GROUP BY TO_CHAR(expense_date, 'IW');
+------------------------------month--------------------------------------------------------------------
+
+SELECT TO_CHAR(expense_date, 'YYYY-MM') AS year_month, SUM(cost) AS total_expenses_per_monthFROM Expenses
+WHERE TO_CHAR(expense_date, 'YYYY') = '2024'
+GROUP BY TO_CHAR(expense_date, 'YYYY-MM')
+ORDER BY year_month;
+
+------------------------------------------ individual items and cost--------------------------------------------------------
+
+SELECT ec.category_name AS category, SUM(e.cost) AS total_expenseFROM Expenses e
+JOIN ExpenseCategories ec ON e.category_id = ec.category_id
+WHERE TO_CHAR(e.expense_date, 'YYYY') = '2024'
+GROUP BY ec.category_name;
